@@ -1,0 +1,36 @@
+Open Files:
+ - In the top bar menu do: File > Open File then select a video files of your choosing
+
+Open Folder:
+ - In the top bar menu do: File > Open Folder, if the folder has any videos of correct format they will open
+
+Download Examples (Uni of Leeds Login Required)
+ - In the top bar menu do File > Download Examples
+
+To Play/Pause:
+ - Press the play/pause button at the bottom (single triangle / double lines)
+
+To skip to next video:
+ - Press the double arrows pointing to the right to go to the next video in the list (if applicable)
+
+To skip to previous video:
+ - Press the double arrows pointing to the left to go to the previous video in the list (if applicable)
+
+To play any video:
+ - Press (Left Click) its video title in the left scroll menu
+
+To change the volume:
+ - Either press the mute button (labeled with a speaker) to toggle between 0 and 100%
+ - Or use the slider to the buttons right to set any value
+
+To Scrub through the video:
+ - Drag the main (top / longest) scroll bar to scrub through the video
+
+To Remove a video:
+ - Right click a video from the left hand side scroll view and select remove
+
+To Re-order the list:
+ - Right click on a video in the left panel and click move up or click move down
+
+To Shuffle the list:
+ - Click the shuffle button (labeled with 2 bending arrows pointing right)

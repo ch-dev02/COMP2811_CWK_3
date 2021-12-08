@@ -1,90 +1,179 @@
-#include "tomeo.h"
-#include "ui_mainwindow.h"
+//    ______
+//   /_  __/___  ____ ___  ___  ____
+//    / / / __ \/ __ `__ \/ _ \/ __ \
+//   / / / /_/ / / / / / /  __/ /_/ /
+//  /_/  \____/_/ /_/ /_/\___/\____/
+//              video for sports enthusiasts...
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-    this->setWindowTitle("tomeo");
-    player = new QMediaPlayer(this);
-    vw = new QVideoWidget(this);
-    player->setVideoOutput(vw);
-    this->setCentralWidget(vw);
+//  2811 cw3 : twak 11/11/2021
 
-    slider = new QSlider(this);
-    bar = new QProgressBar(this);
 
-    slider->setOrientation(Qt::Horizontal);
+#include <iostream>
+#include <QApplication>
+#include <QtMultimediaWidgets/QVideoWidget>
+#include <QMediaPlaylist>
+#include <string>
+#include <vector>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtCore/QFileInfo>
+#include <QtWidgets/QFileIconProvider>
+#include <QDesktopServices>
+#include <QImageReader>
+#include <QMessageBox>
+#include <QtCore/QDir>
+#include <QtCore/QDirIterator>
+#include "the_player.h"
+#include "the_button.h"
+#include "menu.h"
+#include <cstddef>
+#include <QFileDialog>
+#include <QScrollArea>
 
-    QPushButton* p = new QPushButton(this);
-    ui->statusBar->addWidget(p);
-    ui->statusBar->addPermanentWidget(slider);
-    ui->statusBar->addPermanentWidget(bar);
-    //trying to make the play button
-    p->setText("Play");
-    //connect(p,SIGNAL (clicked()),player,&QMediaPlayer::play);
-    connect(player,&QMediaPlayer::durationChanged,slider,&QSlider::setMaximum);
-    connect(player,&QMediaPlayer::positionChanged,slider,&QSlider::setValue);
-    connect(slider,&QSlider::sliderMoved,player,&QMediaPlayer::setPosition);
-    connect(player,&QMediaPlayer::durationChanged,bar,&QProgressBar::setMaximum);
-    connect(player,&QMediaPlayer::positionChanged,bar,&QProgressBar::setValue);
+// read in videos and thumbnails to this directory
+std::vector<TheButtonInfo> getInfoIn (std::string loc) {
 
+    std::vector<TheButtonInfo> out =  std::vector<TheButtonInfo>();
+    QDir dir(QString::fromStdString(loc) );
+    QDirIterator it(dir);
+
+    while (it.hasNext()) { // for all files
+
+        QString f = it.next();
+
+            if (f.contains("."))
+
+#if defined(_WIN32)
+            if (f.contains(".wmv"))  { // windows
+#else
+            if (f.contains(".mp4") || f.contains("MOV"))  { // mac/linux
+#endif
+            std::cout<<"found mp4 videos"<<std::endl;
+            QString thumb = f.left( f .length() - 4) +".png";
+            if (QFile(thumb).exists()) { // if a png thumbnail exists
+                QImageReader *imageReader = new QImageReader(thumb);
+                    QImage sprite = imageReader->read(); // read the thumbnail
+                    if (!sprite.isNull()) {
+                        QIcon* ico = new QIcon(QPixmap::fromImage(sprite)); // voodoo to create an icon for the button
+                        QUrl* url = new QUrl(QUrl::fromLocalFile( f )); // convert the file location to a generic url
+                        out . push_back(TheButtonInfo( url , ico  ) ); // add to the output list
+                    }
+                    else
+                        qDebug() << "warning: skipping video because I couldn't process thumbnail " << thumb << endl;
+            }
+            else
+                qDebug() << "warning: skipping video because I couldn't find thumbnail " << thumb << endl;
+        }
+    }
+
+    return out;
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
+//void openVideo(){
+////    QString filename=QFileDialog::getOpenFileName(player,"Open a File","","Video File (*.avi,*.mpg,*.mp4)");
+//////    ThePlayer *player = new ThePlayer;
+////     player->playVideo(filename);
+//}
+
+int main(int argc, char *argv[]) {
+
+    // let's just check that Qt is operational first
+    qDebug() << "Qt version: " << QT_VERSION_STR << endl;
+
+    // create the Qt Application
+    QApplication app(argc, argv);
+
+    // collect all the videos in the folder
+    std::vector<TheButtonInfo> videos;
+
+    if (argc == 2)
+        videos = getInfoIn( std::string(argv[1]) );
+
+    if (videos.size() == 0) {
+
+        const int result = QMessageBox::question(
+                    NULL,
+                    QString("Tomeo"),
+                    QString("no videos found! download, unzip, and add command line argument to \"quoted\" file location. Download videos from Tom's OneDrive?"),
+                    QMessageBox::Yes |
+                    QMessageBox::No );
+
+        switch( result )
+        {
+        case QMessageBox::Yes:
+          QDesktopServices::openUrl(QUrl("https://leeds365-my.sharepoint.com/:u:/g/personal/scstke_leeds_ac_uk/EcGntcL-K3JOiaZF4T_uaA4BHn6USbq2E55kF_BTfdpPag?e=n1qfuN"));
+          break;
+        default:
+            break;
+        }
+        exit(-1);
+    }
+
+    // the widget that will show the video
+    QVideoWidget *videoWidget = new QVideoWidget;
+
+    // the QMediaPlayer which controls the playback
+    ThePlayer *player = new ThePlayer;
+    player->setVideoOutput(videoWidget);
+
+    // a row of buttons
+    QWidget *buttonWidget = new QWidget();
+    // a list of the buttons
+    std::vector<TheButton*> buttons;
+    // the buttons are arranged horizontally
+    QHBoxLayout *layout = new QHBoxLayout();
+    buttonWidget->setLayout(layout);
+
+
+    std::cout<<"Creating buttons "<<std::endl;
+    // create the four buttons
+    for ( int i = 0; i < 4; i++ ) {
+        TheButton *button = new TheButton(buttonWidget);
+        button->connect(button, SIGNAL(jumpTo(TheButtonInfo*)), player, SLOT(jumpTo(TheButtonInfo*))); // when clicked, tell the player to play.
+        buttons.push_back(button);
+        layout->addWidget(button);
+        button->init(&videos.at(i));
+    }
+
+    std::cout<<"calling set content "<<std::endl;
+
+//    // Menu Widget
+//    TheMenu *menu=new TheMenu(player,buttons,videos,buttonWidget,);
+
+    // tell the player what buttons and videos are available
+    player->setContent(&buttons, & videos);
+
+    // create the main window and layout
+    QWidget window;
+    QVBoxLayout *top = new QVBoxLayout();
+    // Menu Widget
+    TheMenu *menu=new TheMenu(player,buttons,videos,layout,buttonWidget);
+    menu->setMaximumHeight(18);
+    
+    window.setLayout(top);
+    window.setWindowTitle("tomeo");
+    window.setMinimumSize(800, 680);
+    // add the video and the buttons to the top level widget
+    top->addWidget(menu);
+    top->addWidget(videoWidget);
+    top->addWidget(buttonWidget);
+
+    //scroll area
+
+//    QScrollArea *scrollArea = new QScrollArea(NULL);
+//    QSize sz_min = QSize(210, 160);
+//    QSize sz_max = QSize(2080, 200);
+//    scrollArea->setMinimumSize(sz_min);
+//    scrollArea->setMaximumSize(sz_max);
+//    scrollArea->setAlignment(Qt::AlignCenter);
+//    scrollArea->setWidget(buttonWidget);
+//    // top->addWidget(buttonWidget);
+//    top->addWidget(scrollArea);
+
+
+    // showtime!
+    window.show();
+
+    // wait for the app to terminate
+    return app.exec();
 }
-
-void MainWindow::on_actionOpen_triggered()
-{
-    QString filename = QFileDialog::getOpenFileName(this,"Open A File","","Video Files (*)");
-    on_actionStop_triggered();
-    player->setMedia(QUrl::fromLocalFile(filename));
-    on_actionPlay_triggered();
-
-}
-
-
-void MainWindow::on_actionPlay_triggered()
-{
-    player->play();
-    //ui->statusBar->showMessage("Playing");
-
-}
-
-
-void MainWindow::on_actionStop_triggered()
-{
-    player->stop();
-    //ui->statusBar->showMessage("Stop");
-}
-
-
-void MainWindow::on_actionPause_triggered()
-{
-    player->pause();
-    //ui->statusBar->showMessage("Paused");
-}
-
-
-void MainWindow::on_Pause_clicked()
-{
-    player->pause();
-}
-
-
-
-
-void MainWindow::on_Stop_clicked()
-{
-    player->stop();
-}
-
-
-void MainWindow::on_Play_clicked()
-{
-    player->play();
-}
-

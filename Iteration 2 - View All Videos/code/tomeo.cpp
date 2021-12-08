@@ -86,28 +86,28 @@ int main(int argc, char *argv[]) {
     // collect all the videos in the folder
     std::vector<TheButtonInfo> videos;
 
-    if (argc == 2)
-        videos = getInfoIn( std::string(argv[1]) );
+//    if (argc == 2)
+//        videos = getInfoIn( std::string(argv[1]) );
 
-    if (videos.size() == 0) {
+//    if (videos.size() == 0) {
 
-        const int result = QMessageBox::question(
-                    NULL,
-                    QString("Tomeo"),
-                    QString("no videos found! download, unzip, and add command line argument to \"quoted\" file location. Download videos from Tom's OneDrive?"),
-                    QMessageBox::Yes |
-                    QMessageBox::No );
+//        const int result = QMessageBox::question(
+//                    NULL,
+//                    QString("Tomeo"),
+//                    QString("no videos found! download, unzip, and add command line argument to \"quoted\" file location. Download videos from Tom's OneDrive?"),
+//                    QMessageBox::Yes |
+//                    QMessageBox::No );
 
-        switch( result )
-        {
-        case QMessageBox::Yes:
-          QDesktopServices::openUrl(QUrl("https://leeds365-my.sharepoint.com/:u:/g/personal/scstke_leeds_ac_uk/EcGntcL-K3JOiaZF4T_uaA4BHn6USbq2E55kF_BTfdpPag?e=n1qfuN"));
-          break;
-        default:
-            break;
-        }
-        exit(-1);
-    }
+//        switch( result )
+//        {
+//        case QMessageBox::Yes:
+//          QDesktopServices::openUrl(QUrl("https://leeds365-my.sharepoint.com/:u:/g/personal/scstke_leeds_ac_uk/EcGntcL-K3JOiaZF4T_uaA4BHn6USbq2E55kF_BTfdpPag?e=n1qfuN"));
+//          break;
+//        default:
+//            break;
+//        }
+//        exit(-1);
+//    }
 
     // the widget that will show the video
     QVideoWidget *videoWidget = new QVideoWidget;
@@ -124,16 +124,15 @@ int main(int argc, char *argv[]) {
     QHBoxLayout *layout = new QHBoxLayout();
     buttonWidget->setLayout(layout);
 
-
     std::cout<<"Creating buttons "<<std::endl;
     // create the four buttons
-    for ( int i = 0; i < 4; i++ ) {
-        TheButton *button = new TheButton(buttonWidget);
-        button->connect(button, SIGNAL(jumpTo(TheButtonInfo*)), player, SLOT(jumpTo(TheButtonInfo*))); // when clicked, tell the player to play.
-        buttons.push_back(button);
-        layout->addWidget(button);
-        button->init(&videos.at(i));
-    }
+//    for ( int i = 0; i < 4; i++ ) {
+//        TheButton *button = new TheButton(buttonWidget);
+//        button->connect(button, SIGNAL(jumpTo(TheButtonInfo*)), player, SLOT(jumpTo(TheButtonInfo*))); // when clicked, tell the player to play.
+//        buttons.push_back(button);
+//        layout->addWidget(button);
+//        button->init(&videos.at(i));
+//    }
 
     std::cout<<"calling set content "<<std::endl;
 
@@ -167,6 +166,7 @@ int main(int argc, char *argv[]) {
     scrollArea->setMaximumSize(sz_max);
     scrollArea->setAlignment(Qt::AlignCenter);
     scrollArea->setWidget(buttonWidget);
+    scrollArea->setWidgetResizable(true);
     // top->addWidget(buttonWidget);
     top->addWidget(scrollArea);
 

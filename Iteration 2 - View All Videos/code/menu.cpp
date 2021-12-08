@@ -94,19 +94,14 @@ void TheMenu::openFolder()
                                                        | QFileDialog::DontResolveSymlinks);
     std::cout<<filename.toStdString()<<std::endl;
     if(!filename.isEmpty()){
-        std::vector<TheButtonInfo> Videos=getInfoIn(filename.toStdString());
-        // the widget that will show the video
-//        QVideoWidget *videoWidget = new QVideoWidget;
-
-//        // the QMediaPlayer which controls the playback
-//        player->setVideoOutput(videoWidget);
+        videos=getInfoIn(filename.toStdString());
 
         // a list of the buttons
         std::vector<TheButton*> Buttons;
 
         std::cout<<"Creating buttons "<<std::endl;
         // create the four buttons
-        for ( size_t i = 0; i < Videos.size(); i++ ) {
+        for ( size_t i = 0; i < videos.size(); i++ ) {
             TheButton *button = new TheButton(buttonWidget);
             button->connect(button, SIGNAL(jumpTo(TheButtonInfo*)), player, SLOT(jumpTo(TheButtonInfo*))); // when clicked, tell the player to play.
             Buttons.push_back(button);
@@ -120,9 +115,8 @@ void TheMenu::openFolder()
     //    TheMenu *menu=new TheMenu(player,buttons,videos,buttonWidget,);
 
         // tell the player what buttons and videos are available
-        player->setContent(&Buttons, &Videos);
+        player->setContent(&Buttons, &videos);
         buttons=Buttons;
-        videos=Videos;
 
 
 
